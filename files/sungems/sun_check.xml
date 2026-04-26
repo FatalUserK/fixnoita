@@ -1,0 +1,19 @@
+<Entity>
+
+	<InheritTransformComponent/>
+
+	<LuaComponent
+		script_material_area_checker_success="mods/fixnoita/files/sungems/summon_sun.lua"
+	/>
+
+	<MaterialAreaCheckerComponent
+		update_every_x_frame="240"
+		look_for_failure="0"
+		count_min="851"
+		kill_after_message="1"
+		material="gem_box2d_yellow_sun_gravity"
+		area_aabb.min_x="-144"
+	/>
+	<!-- 851.2 is 70% of a full sunrock (1216 pixels) -->
+	<!-- 144 is double the radius check for a sunrock entity (72 pixels) -->
+</Entity>
