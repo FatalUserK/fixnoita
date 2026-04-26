@@ -9,11 +9,15 @@
 	<MaterialAreaCheckerComponent
 		update_every_x_frame="240"
 		look_for_failure="0"
+		always_check_fullness="1"
 		count_min="851"
 		kill_after_message="1"
 		material="gem_box2d_darksun"
-		area_aabb.min_x="-144"
+		area_aabb.min_x="-92"
+		area_aabb.max_x="92"
+		area_aabb.min_y="-92"
+		area_aabb.max_y="92"
 	/>
 	<!-- 851.2 is 70% of a full sunrock (1216 pixels) -->
-	<!-- 144 is double the radius check for a sunrock entity (72 pixels) -->
+	<!-- 92 is the radius check for a sunrock entity + half of the sunrock radius (72 pixels + 40 pixels/2) -->
 </Entity>
