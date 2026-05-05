@@ -1,0 +1,4 @@
+- crit simulator if enemy has crit+ or player is jarated
+- fix description for kills to mana perk
+- fix mist tags
+- make vomit inherit properties from green slime
