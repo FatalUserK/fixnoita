@@ -1,4 +1,5 @@
 - crit simulator if enemy has crit+ or player is jarated
 - fix mist tags
 - telekick isnt removed properly by null altar
+- damaging auras on Projectile Area Damage and Tapion Vasaali's damaging aura?
 - true orbit with physics projectiles is buggy?
