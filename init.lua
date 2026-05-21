@@ -6,8 +6,13 @@ local function modifile(file, target, sub)
 	ModTextFileSetContent(file, ModTextFileGetContent(file):gsub("\r\n", "\n"):gsub(escape(target), sub))
 end
 
---- [Random Access Bullshit] (RAB), a thing Noita likes to do where when an invalid value is encountered, it uses a random value from memory.
---- Name decided by a friend of mine whom i paraphrased the issue to, lmk if you have a better/more accurate name.
+--- [Random Access Bullshit] (RAB Glitch), a thing Noita likes to do where when an invalid value is encountered, it uses a random value from memory.
+--- Name decided by me until a better name is suggested. Proposed alternatives thus far:
+--- Illegal Anycontainer Unboxing
+--- Illegal CAnyContainerCast Unboxing
+--- Uninitialized Stack Address
+--- Hämis Glitch
+--- Unitialized Memory Address
 
 --- Explanation from Nathansnail on Noitacord: https://discord.com/channels/453998283174576133/1445918844265697435
 --[[The issue is CAnyContainer, they do a CAnyContainerCast which in the case that the type is wrong (it always is for xml because its a string) will just
@@ -17,7 +22,10 @@ Primitive types in c++ by default aren't initialised, so it just returns whateve
 
 
 
---<ParticleEmitterComponent:y_pos_offset_min/> is "" for these entities, this results in RAB causing the particle trail's length to be malformed
+
+--[[ JETPACK LENGTH FIX ]]
+--<ParticleEmitterComponent::y_pos_offset_min/> is "" for these entities, this results in RAB causing the particle trail's height to be malformed.
+
 local jetpack_targets = {
 	"data/entities/base_jetpack_nosound.xml",
 	"data/entities/animals/assassin.xml",
@@ -35,12 +43,17 @@ local jetpack_targets = {
 for _,target in ipairs(jetpack_targets) do
 	for xml in nxml.edit_file(target) do
 		local pecomp = xml:first_of("ParticleEmitterComponent")
-		if pecomp and pecomp.attr.y_pos_offset_min == "" then pecomp.attr.y_pos_offset_min = ".5" end --.5 looks nicer than 0 imo
+		if pecomp and pecomp.attr.y_pos_offset_min == "" then pecomp.attr.y_pos_offset_min = ".5" end
+		--0.5 looks nicer than 0 imo, we don't know what value Nolla would have written here so it is somewhat up to interpretation.
 	end
 end
 
 
---fixes invalid values resulting in RAB explosion radius
+
+
+-- [[ S2P CRASH FIX ]]
+-- Fixes invalid values resulting in RAB malforming explosion radius. These malformed explosions can in semi-rare cases be large enough to instantly crash your game.
+
 local s2p = ModTextFileGetContent("data/scripts/projectiles/spells_to_power.lua")
 if not s2p:find("ComponentObjectSetValue2") then
 	ModTextFileSetContent("data/scripts/projectiles/spells_to_power.lua",
@@ -49,7 +62,11 @@ if not s2p:find("ComponentObjectSetValue2") then
 end
 
 
---changes mountain altar to do a check for the sungem materials in case the entity attached was destroyed
+
+
+--[[ SUNGEM ALTAR FIX ]]
+
+-- Implements a custom sungem check that also checks the materials in case the entity attached was destroyed.
 for xml in nxml.edit_file("data/entities/animals/boss_centipede/ending/ending_sampo_spot_mountain.xml") do
 	xml:add_children({
 		nxml.parse_file("mods/fixnoita/files/sungems/sun_check.xml"),
@@ -57,26 +74,39 @@ for xml in nxml.edit_file("data/entities/animals/boss_centipede/ending/ending_sa
 	})
 end
 
+-- Disables the vanilla checks since we're reimplementing them, and doing both could potentially cause duplicate outcomes (instant supernova).
 modifile("data/scripts/magic/altar_tablet_magic.lua", [[GlobalsGetValue("MISC_SUN_EFFECT") ~= "1"]], [[false]])
 modifile("data/scripts/magic/altar_tablet_magic.lua", [[GlobalsGetValue("MISC_DARKSUN_EFFECT") ~= "1"]], [[false]])
 
 
---translations: fixes kills to mana perk description being a flat-out lie, and adds translations for empty death messages
-local compatible_languages = {
-	"",
-}
-if compatible_languages[GameTextGetTranslatedOrNot("")] or true then
-	ModTextFileSetContent("data/translations/common.csv",
-		(ModTextFileGetContent("data/translations/common.csv") .. "\n" .. ModTextFileGetContent("mods/fixnoita/")):gsub("\r",""):gsub("\n\n","\n")
-	)
-end
 
---perkdesc_mana_from_kills,"You gain a short-lived boost to your mana regeneration when an enemy dies.",,,,,,,,,,,,,
---animal_arrowtrap_left,Arrow trap,,,,,,,,,,,,,
---animal_arrowtrap_right,Arrow trap,,,,,,,,,,,,,
---animal_firetrap_left,Fire trap,,,,,,,,,,,,,
---animal_firetrap_right,Fire trap,,,,,,,,,,,,,
---animal_crystal_red,crystal,кристалл,cristal,cristal,Kristall,cristal,cristallo,kryształ,晶体,クリスタル,수정,,,,,,,,,,,,,
---animal_crystal_pink,crystal,кристалл,cristal,cristal,Kristall,cristal,cristallo,kryształ,晶体,クリスタル,수정,,,,,,,,,,,,,
---animal_crystal_green,crystal,кристалл,cristal,cristal,Kristall,cristal,cristallo,kryształ,晶体,クリスタル,수정,,,,,,,,,,,,,
---animal_physics_die,Chaos die,Кубик случая,Dado do caos,Dado caótico,Chaoswürfel,Dé chaotique,Dado del caos,Kość chaosu,混沌骰子,カオスのサイコロ,혼돈 주사위,,,,,,,,,,,,,
+
+--[[ TRANSLATION FIXES ]]
+--There are a few issues with translations, the main offenders being missing names for death-messages and Kills To Mana's description being outdated
+
+local translation_overrides = {
+	{-- Perk description is an outright lie, likely outdated.
+		target = [["Every time an enemy near you dies, you release mana-recharging liquid."]],
+		new = [["You gain a short-lived boost to your mana regeneration when an enemy dies."]]
+	}, --Perk actually gives you 150f of MANA_REGENERATION when an enemy that has been within 240p of you dies.
+}
+
+local translations = ModTextFileGetContent("data/translations/common.csv")
+translations = translations .. "\n" .. ModTextFileGetContent("mods/fixnoita/files/missing_translations.csv") .. "\n"
+translations = translations:gsub("\r", ""):gsub("\n\n+", "\n")
+for _,value in ipairs(translation_overrides) do
+	translations = translations:gsub(escape(value.target), value.new)
+end
+ModTextFileSetContent("data/translations/common.csv", translations)
+
+
+
+
+--[[ VOMIT SLIME FIX ]]
+--Vomit material was intended to inherit properties from Green Slime, this fails however because it is designated as a <CellData/> rather than <CellDataChild/>
+
+for xml in nxml.edit_file("data/materials.xml") do
+	for elem in xml:each_of("CellData") do
+		if elem.attr.name == "vomit" then elem.name = "CellDataChild" end
+	end
+end
