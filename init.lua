@@ -130,7 +130,7 @@ ModTextFileSetContent("data/translations/common.csv", translations)
 --Fix the death messages caused by ghosts that follow Tapion Vasalli, "cursed rock" -> "holy"
 modifile("data/entities/animals/boss_spirit/wisp.xml", [["$damage_rock_curse"]], [["$damage_holy"]])
 --Fix the death messages caused by the Damage Field modifier, "cursed rock" -> "damage field"
-modifile("data/entities/misc/area_damage.xml", [["$damage_rock_curse"]], [["$damage_projectile_area"]])
+modifile("data/entities/misc/area_damage.xml", [["$damage_rock_curse"]], [["$fixnoita_damage_projectile_area"]])
 
 
 

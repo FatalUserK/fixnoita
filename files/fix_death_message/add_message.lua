@@ -1,14 +1,10 @@
 --function damage_received(damage, message, attacker, is_fatal, projectile)
 --function death(damage_type_bit_field, damage_message, entity_thats_responsible, drop_items)
+--^^ this script used to run off of script_damage_received callback, but script_death actually seems more ideal, it lacks `projectile` but has `damage_type_bit_field`.
+--`projectile` can be extrapolated from `attacker` anyway, 
 
-
-function death(damage_type_bit_field, damage_message, entity_thats_responsible, drop_items)
-	local message = damage_message
-	local is_fatal = true
-	local attacker = entity_thats_responsible
-	local projectile = 0
-
-	if not is_fatal then return end --If damage is fatal, no need to mess with the death message.
+function death(damage_type_bit_field, message, attacker, drop_items)
+	message = ""
 	local msg = message:sub(1,1) == '$' and GameTextGetTranslatedOrNot(message) or message --if the message is a translation key, translate it
 	if #msg > 0 then return end --If message is not empty, assume all is good and return early. 
 
@@ -57,6 +53,7 @@ function death(damage_type_bit_field, damage_message, entity_thats_responsible, 
 		end,
 	}
 
+	local projectile
 	local attacker_name
 	if attacker ~= 0 then
 		if projectile == 0 then
@@ -76,7 +73,7 @@ function death(damage_type_bit_field, damage_message, entity_thats_responsible, 
 	end
 
 	local projectile_name
-	if projectile ~= 0 then
+	if projectile then
 		for _,func in ipairs(funcs) do
 			projectile_name = func(projectile)
 			if projectile_name ~= nil then break end
@@ -94,7 +91,51 @@ function death(damage_type_bit_field, damage_message, entity_thats_responsible, 
 		death_msg = attacker_name or projectile_name
 	end
 
-	if not death_msg then return end
+	if not death_msg or true then
+		local damage_bit_positions = {
+			--[0b] = "$fixnoita_damage_none", --"none"
+			[0x1] = "$damage_melee", --"melee"
+			[0x2] = "$damage_projectile", --"projectile"
+			[0x4] = "$damage_explosion", --"explosion"
+			[0x8] = "$fixnoita_damage_bite", --"bite"
+			[0x10] = "$damage_fire", --"fire"
+			[0x20] = "$fixnoita_damage_material", --"material"
+			[0x40] = "$damage_fall", --"fall"
+			[0x80] = "$damage_electricity", --"electricity"
+			[0x100] = "$damage_drowning", --"drowning"
+			[0x200] = "$fixnoita_damage_physics_body_damaged", --"physics_body_damaged"
+			[0x400] = "$damage_drill", --"drill"
+			[0x800] = "$damage_slice", --"slice"
+			[0x1000] = "$damage_ice", --"ice"
+			[0x2000] = "$damage_healing", --"healing"
+			[0x4000] = "$damage_physicshit", --"physics_hit"
+			[0x8000] = "$damage_radioactive", --"radioactive"
+			[0x10000] = "$damage_poison", --"poison"
+			[0x20000] = "$fixnoita_damage_material_with_flash", --"material_with_flash"
+			[0x40000] = "$damage_overeating", --"overeating"
+			[0x80000] = "$damage_curse", --"curse"
+			[0x100000] = "$damage_holy", --"holy"
+		}
+
+		local damage_types = {}
+		for value, translation_key in pairs(damage_bit_positions) do
+			if bit.band(damage_type_bit_field, value) ~= 0 then
+				damage_type_bit_field = damage_type_bit_field - value
+				damage_types[#damage_types+1] = get_translation_or_nil(translation_key)
+			end
+		end
+
+		death_msg = #damage_types < 2 and "$fixnoita_damage_type" or "$fixnoita_damage_types"
+		if #damage_types == 0 then
+			death_msg = GameTextGet(death_msg, "$fixnoita_damage_none")
+		else
+			death_msg = GameTextGetTranslatedOrNot(death_msg)
+			for index, value in ipairs(damage_types) do
+				death_msg = death_msg .. GameTextGetTranslatedOrNot(value) .. ", "
+			end
+			death_msg = death_msg:sub(1, -3)
+		end
+	end
 
 	ComponentSetValue2(stats, "extra_death_msg", death_msg .. ComponentGetValue2(stats, "extra_death_msg"))
 	local c = EntityCreateNew("remove_extra_death_msg")
