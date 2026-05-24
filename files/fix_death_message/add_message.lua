@@ -1,12 +1,23 @@
-function damage_received(damage, message, attacker, is_fatal, projectile)
+--function damage_received(damage, message, attacker, is_fatal, projectile)
+--function death(damage_type_bit_field, damage_message, entity_thats_responsible, drop_items)
+
+
+function death(damage_type_bit_field, damage_message, entity_thats_responsible, drop_items)
+	local message = damage_message
+	local is_fatal = true
+	local attacker = entity_thats_responsible
+	local projectile = 0
+
 	if not is_fatal then return end --If damage is fatal, no need to mess with the death message.
 	local msg = message:sub(1,1) == '$' and GameTextGetTranslatedOrNot(message) or message --if the message is a translation key, translate it
 	if #msg > 0 then return end --If message is not empty, assume all is good and return early. 
 
 	local entity_id = GetUpdatedEntityID()
 	local stats = EntityGetFirstComponent(entity_id, "GameStatsComponent")
+	print("GameStatsComponent id: " .. tostring(stats))
+	print("GameStatsComponent name: " .. tostring(ComponentGetTypeName(stats or 0)))
 	if not stats then return end
-	print("check1: " .. tostring(ComponentGetTypeName(stats)))
+	if #ComponentGetTypeName(stats) == 0 then return end
 
 	local function get_translation_or_nil(str)
 		if str == nil then return end
@@ -45,7 +56,6 @@ function damage_received(damage, message, attacker, is_fatal, projectile)
 			return get_translation_or_nil(get_file_name(target))
 		end,
 	}
-	print("check2: " .. tostring(ComponentGetTypeName(stats)))
 
 	local attacker_name
 	if attacker ~= 0 then
@@ -64,7 +74,6 @@ function damage_received(damage, message, attacker, is_fatal, projectile)
 			if attacker_name ~= nil then break end
 		end
 	end
-	print("check3: " .. tostring(ComponentGetTypeName(stats)))
 
 	local projectile_name
 	if projectile ~= 0 then
@@ -73,7 +82,6 @@ function damage_received(damage, message, attacker, is_fatal, projectile)
 			if projectile_name ~= nil then break end
 		end
 	end
-	print("check4: " .. tostring(ComponentGetTypeName(stats)))
 
 	local death_msg
 	if projectile_name and attacker_name then
@@ -85,11 +93,9 @@ function damage_received(damage, message, attacker, is_fatal, projectile)
 	else
 		death_msg = attacker_name or projectile_name
 	end
-	print("check5: " .. tostring(ComponentGetTypeName(stats)))
 
 	if not death_msg then return end
 
-	print("check6: " .. tostring(ComponentGetTypeName(stats)))
 	ComponentSetValue2(stats, "extra_death_msg", death_msg .. ComponentGetValue2(stats, "extra_death_msg"))
 	local c = EntityCreateNew("remove_extra_death_msg")
 	EntityAddChild(entity_id, c)

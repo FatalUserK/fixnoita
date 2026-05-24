@@ -140,17 +140,9 @@ modifile("data/entities/misc/area_damage.xml", [["$damage_rock_curse"]], [["$dam
 
 for xml in nxml.edit_file("data/materials.xml") do
 	for elem in xml:each_of("CellData") do
-		if elem.attr._parent then print(elem.attr.name) elem.name = "CellDataChild" 
-		end
+		if elem.attr._parent then print(elem.attr.name) elem.name = "CellDataChild" end
 	end
 end
-
-for xml in nxml.edit_file("data/materials.xml") do
-	for elem in xml:each_of("CellData") do
-		--if elem.attr.name == "vomit" then elem.name = "CellDataChild" end
-	end
-end
-
 
 
 
@@ -158,14 +150,14 @@ end
 --The visuals caused by freeze-stun and electricity-stun effects can become permanent on a held item if you switch to a different item before the effect is up.
 
 --[[ EMPTY DEATH MESSAGES ]]
---Sometimes the game does not provide a death message string, script_damage_received here.
+--Sometimes the game does not provide a death message string, script_death here.
 
 --These two are just merged for efficiency so I don't need to add more than one LuaComponent to the player, will probably split if I eventually need to later.
 for xml in nxml.edit_file("data/entities/player.xml") do
 	xml:add_child(nxml.new_element("LuaComponent", {
 		execute_every_n_frame = "6000", --fix stun visuals every 100 seconds.
 		script_source_file = "mods/fixnoita/files/fix_permanent_stun_visual_items.lua", --Fix stun visuals script.
-		script_damage_received = "mods/fixnoita/files/fix_death_message/add_message.lua", --fix empty death message script.
+		script_death = "mods/fixnoita/files/fix_death_message/add_message.lua", --fix empty death message script.
 		script_polymorphing_to = "mods/fixnoita/files/fix_death_message/add_message.lua", --Detect when the player polymorphs to apply the fix to their new form.
 	}))
 end
@@ -196,12 +188,12 @@ function OnWorldPreUpdate()
 		GameRemoveFlagRun("fixnoita_player_has_polymorphed")
 
 		for _,luacomp in ipairs(EntityGetComponent(player, "LuaComponent") or {}) do
-			if ComponentGetValue2(luacomp, "script_damage_received") == "mods/fixnoita/files/fix_death_message/add_message.lua" then return end
+			if ComponentGetValue2(luacomp, "script_death") == "mods/fixnoita/files/fix_death_message/add_message.lua" then return end
 		end --Check if the polymorphed player already has the script. If yes, then early return to halt the function.
 
 		--If the script is not detected on the player, apply the fix.
 		EntityAddComponent2(player, "LuaComponent", {
-			script_damage_received = "mods/fixnoita/files/fix_death_message/add_message.lua",
+			script_death = "mods/fixnoita/files/fix_death_message/add_message.lua",
 			script_polymorphing_to = "mods/fixnoita/files/fix_death_message/add_message.lua",
 		})
 	end
