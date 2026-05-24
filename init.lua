@@ -157,8 +157,8 @@ for xml in nxml.edit_file("data/entities/player.xml") do
 	xml:add_child(nxml.new_element("LuaComponent", {
 		execute_every_n_frame = "6000", --fix stun visuals every 100 seconds.
 		script_source_file = "mods/fixnoita/files/fix_permanent_stun_visual_items.lua", --Fix stun visuals script.
-		script_death = "mods/fixnoita/files/fix_death_message/add_message.lua", --fix empty death message script.
-		script_polymorphing_to = "mods/fixnoita/files/fix_death_message/add_message.lua", --Detect when the player polymorphs to apply the fix to their new form.
+		script_damage_received = "mods/fixnoita/files/fix_death_message.lua", --fix empty death message script.
+		script_polymorphing_to = "mods/fixnoita/files/fix_death_message.lua", --Detect when the player polymorphs to apply the fix to their new form.
 	}))
 end
 
@@ -188,13 +188,13 @@ function OnWorldPreUpdate()
 		GameRemoveFlagRun("fixnoita_player_has_polymorphed")
 
 		for _,luacomp in ipairs(EntityGetComponent(player, "LuaComponent") or {}) do
-			if ComponentGetValue2(luacomp, "script_death") == "mods/fixnoita/files/fix_death_message/add_message.lua" then return end
+			if ComponentGetValue2(luacomp, "script_damage_received") == "mods/fixnoita/files/fix_death_message.lua" then return end
 		end --Check if the polymorphed player already has the script. If yes, then early return to halt the function.
 
 		--If the script is not detected on the player, apply the fix.
 		EntityAddComponent2(player, "LuaComponent", {
-			script_death = "mods/fixnoita/files/fix_death_message/add_message.lua",
-			script_polymorphing_to = "mods/fixnoita/files/fix_death_message/add_message.lua",
+			script_damage_received = "mods/fixnoita/files/fix_death_message.lua",
+			script_polymorphing_to = "mods/fixnoita/files/fix_death_message.lua",
 		})
 	end
 end
