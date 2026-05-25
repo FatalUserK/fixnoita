@@ -4,7 +4,6 @@
 --`projectile` can be extrapolated from `attacker` anyway, 
 
 function death(damage_type_bit_field, message, attacker, drop_items)
-	message = ""
 	local msg = message:sub(1,1) == '$' and GameTextGetTranslatedOrNot(message) or message --if the message is a translation key, translate it
 	if #msg > 0 then return end --If message is not empty, assume all is good and return early. 
 
@@ -91,9 +90,8 @@ function death(damage_type_bit_field, message, attacker, drop_items)
 		death_msg = attacker_name or projectile_name
 	end
 
-	if not death_msg or true then
+	if not death_msg then --I don't know if this can occur, but if it can then neato. If not- well I can reuse this for a better death message mod in the future.
 		local damage_bit_positions = {
-			--[0b] = "$fixnoita_damage_none", --"none"
 			[0x1] = "$damage_melee", --"melee"
 			[0x2] = "$damage_projectile", --"projectile"
 			[0x4] = "$damage_explosion", --"explosion"
@@ -125,16 +123,19 @@ function death(damage_type_bit_field, message, attacker, drop_items)
 			end
 		end
 
-		death_msg = #damage_types < 2 and "$fixnoita_damage_type" or "$fixnoita_damage_types"
 		if #damage_types == 0 then
-			death_msg = GameTextGet(death_msg, "$fixnoita_damage_none")
+			death_msg = "$fixnoita_damage_none"
 		else
-			death_msg = GameTextGetTranslatedOrNot(death_msg)
+			death_msg = ""
 			for index, value in ipairs(damage_types) do
 				death_msg = death_msg .. GameTextGetTranslatedOrNot(value) .. ", "
 			end
+			if damage_type_bit_field > 0 then death_msg = death_msg .. GameTextGetTranslatedOrNot("$fixnoita_damage_unknown") .. ", " end
 			death_msg = death_msg:sub(1, -3)
 		end
+
+		local prefix = #damage_types < 2 and "$fixnoita_damage_type" or "$fixnoita_damage_types"
+		death_msg = GameTextGet(prefix, death_msg)
 	end
 
 	ComponentSetValue2(stats, "extra_death_msg", death_msg .. ComponentGetValue2(stats, "extra_death_msg"))

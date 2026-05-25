@@ -76,7 +76,7 @@ if not s2p:find("ComponentObjectSetValue2") then
 	ModTextFileSetContent("data/scripts/projectiles/spells_to_power.lua",
 		"local ComponentObjectSetValue = ComponentObjectSetValue2\n\n" .. s2p
 	)
-end
+end --Yeah no this is the easiest fix in the world. This bug was undocumented pre-epi2 due to the plethora of other issues with the spell lmao.
 
 
 
@@ -115,7 +115,7 @@ local translation_overrides = {
 	},
 	{ -- fr-fr
 		target = [["Chaque fois qu'un ennemi à proximité meurt, vous libérez un liquide rechargeant le mana."]],
-		new = [[Gagne une régéneration de mana accrue pour une courte durée lorsqu'un ennemi meurt.]]
+		new = [["Gagne une régéneration de mana accrue pour une courte durée lorsqu'un ennemi meurt."]]
 	} --Thank you Spode
 }
 
@@ -131,6 +131,8 @@ ModTextFileSetContent("data/translations/common.csv", translations)
 modifile("data/entities/animals/boss_spirit/wisp.xml", [["$damage_rock_curse"]], [["$damage_holy"]])
 --Fix the death messages caused by the Damage Field modifier, "cursed rock" -> "damage field"
 modifile("data/entities/misc/area_damage.xml", [["$damage_rock_curse"]], [["$fixnoita_damage_projectile_area"]])
+--Fix the Propane Tank spell using a hardcoded name instead of its translation, "Propane tank" -> $action_propane_tank
+modifile("data/entities/misc/custom_cards/propane_tank.xml", [["Propane tank"]], [["$action_propane_tank"]])
 
 
 
@@ -198,3 +200,30 @@ function OnWorldPreUpdate()
 		})
 	end
 end
+
+
+
+
+--[[ FIX MULTIPLE CRYSTAL KEYS ]]
+--The Crystal Key tracks whether it has listened to a specific music machine via RunFlags, but the light/dark chests use the key's VariableStorageComponent to track completion.
+--This causes issues if you have the key listen to a machine and then loes that key, as a new key will think it's already listened to that machine, and not take in the song.
+
+--Add new <VariableStorageComponent/> to the key.
+for xml in nxml.edit_file("data/entities/animals/boss_alchemist/key.xml") do
+	xml:add_child(nxml.new_element("VariableStorageComponent", {
+		_tags = "enabled_in_world",
+		name = "fixnoita_key_tracker",
+		value_int = "0",
+	}))
+end
+
+--Prepend with our new function.
+ModTextFileSetContent("data/entities/animals/boss_alchemist/key_music.lua",
+	ModTextFileGetContent("mods/fixnoita/files/key_script_prepend.lua") .. ModTextFileGetContent("data/entities/animals/boss_alchemist/key_music.lua")
+)
+
+--Replace flag check with our function.
+modifile("data/entities/animals/boss_alchemist/key_music.lua",
+	[[GameHasFlagRun( mm_flag ) and ( GameHasFlagRun( mm_flag .. "_done" ) == false )]],
+	[[update_music_machine_status(entity_id, mm_id)]]
+)
