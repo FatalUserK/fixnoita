@@ -148,6 +148,7 @@ end
 
 
 
+
 --[[ ITEM STUN VISUALS FIX ]]
 --The visuals caused by freeze-stun and electricity-stun effects can become permanent on a held item if you switch to a different item before the effect is up.
 
@@ -226,4 +227,26 @@ ModTextFileSetContent("data/entities/animals/boss_alchemist/key_music.lua",
 modifile("data/entities/animals/boss_alchemist/key_music.lua",
 	[[GameHasFlagRun( mm_flag ) and ( GameHasFlagRun( mm_flag .. "_done" ) == false )]],
 	[[update_music_machine_status(entity_id, mm_id)]]
+)
+
+
+
+
+--[[ FIX TELEKINETIC KICK REMOVAL ]]
+--The Nullifying Altar does not properly strip the player of their telekinetic powers despite removing the perk.
+
+for xml in nxml.edit_file("data/entities/misc/perk_telekinesis.xml") do
+	for elem in xml:each_child() do
+		local tags = elem.attr._tags or ""
+		if #tags > 0 then tags = tags .. ",telekinetic_kick" else tags = "telekinetic_kick" end
+		elem.attr._tags = tags
+	end
+end
+
+modifile("data/scripts/perks/perk_list.lua", [[-- TODO( Petri ): Remove the perk_telekinesis.xml stuff from the entity]],
+			[[-- TODO( Petri ): Remove the perk_telekinesis.xml stuff from the entity
+			-- TODONE( UserK ): Removed the perk_telekinesis.xml stuff from the entity
+			for _,component in ipairs(EntityGetAllComponents(entity_who_picked) or {}) do
+				if ComponentHasTag(component, "telekinetic_kick") then EntityRemoveComponent(entity_who_picked, component) end
+			end]]
 )

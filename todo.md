@@ -1,6 +1,5 @@
 - crit simulator if enemy has crit+ or player is jarated
 - fix mist tags (toggle)
-- telekick isnt removed properly by null altar? (toggle)
 - damaging auras on Projectile Area Damage and Tapion Vasaali's damaging aura give wrong death message
 - true orbit with physics projectiles is buggy? (toggle)
 - homonculous negative HP berserk attacks player?
@@ -14,7 +13,6 @@
 - fix orbit or whatever spams annoying-ass errors at me with cpand.
 - fix wands no longer spinning after held by an enemy (fix after player picks it back up)
 - fix dropper bolt starting off with 25/35 charges
-- does crystal key glitch with music machines still exist?
 - does multiple-ending-spots bug still exist?
 - fix duping player if possible? (toggle)
 ill add the toggle settings when i can be assed to writ
@@ -30,6 +28,10 @@ ill add the toggle settings when i can be assed to writ
 - tentacle hitfx child -> parent nonsense? (toggle)
 - fix gap between cursed rock auras
 - *sighhhh*, fix enlightened alchemist attacks working as illusions :(
+
+# QOL
+- angry ghost display an icon of their current copied projectile above their head
+- fix whitehole using the same fadeout as blackhole
 
 
 # idk
