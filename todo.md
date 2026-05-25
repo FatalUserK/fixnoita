@@ -12,7 +12,6 @@
 - chaos die CoV doesnt have parity with regular CoV (doesnt apply heal nicely)
 - fix orbit or whatever spams annoying-ass errors at me with cpand.
 - fix wands no longer spinning after held by an enemy (fix after player picks it back up)
-- fix dropper bolt starting off with 25/35 charges
 - does multiple-ending-spots bug still exist?
 - fix duping player if possible? (toggle)
 ill add the toggle settings when i can be assed to writ

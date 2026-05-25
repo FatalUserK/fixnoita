@@ -250,3 +250,19 @@ modifile("data/scripts/perks/perk_list.lua", [[-- TODO( Petri ): Remove the perk
 				if ComponentHasTag(component, "telekinetic_kick") then EntityRemoveComponent(entity_who_picked, component) end
 			end]]
 )
+
+
+
+
+--[[ FIX DROPPER BOLT CHARGES ]]
+--Dropper Bolt spell starts with 25/35 charges. This is because of some nonsense where it's custom card entity is shared with Firebolt and Odd Firebolt.
+
+--I actually don't fully understand this bug that much since it seems reliant on a bizarre system I don't fully understand and don't think I need to.
+--Removing the overrides from the first <Base/> component appears to fix this, I don't know why they're there or if they do anything helpful?
+--It seems to work, if something breaks go pester me and I'll go fix it.
+for xml in nxml.edit_file("data/entities/misc/custom_cards/grenade.xml") do
+	local base = xml:first_of("Base")
+	if base then
+		base:clear_children()
+	end
+end
