@@ -1,6 +1,5 @@
 - crit simulator if enemy has crit+ or player is jarated
 - fix mist tags (toggle)
-- damaging auras on Projectile Area Damage and Tapion Vasaali's damaging aura give wrong death message
 - true orbit with physics projectiles is buggy? (toggle)
 - homonculous negative HP berserk attacks player?
 - missing perk in hm
@@ -12,7 +11,7 @@
 - chaos die CoV doesnt have parity with regular CoV (doesnt apply heal nicely)
 - fix orbit or whatever spams annoying-ass errors at me with cpand.
 - fix wands no longer spinning after held by an enemy (fix after player picks it back up)
-- does multiple-ending-spots bug still exist?
+- ? check if multiple-ending-spots bug still exists
 - fix duping player if possible? (toggle)
 ill add the toggle settings when i can be assed to writ
 # arbitrary spell fixes

@@ -4,7 +4,7 @@ local function update_music_machine_status(entity_id, mm_id)
 		if ComponentGetValue2(varcomp, "name") == "fixnoita_key_tracker" then
 			local val = ComponentGetValue2(varcomp, "value_int") or 0
 			local mm_bit = 2^mm_id
-			if bit.band(val, mm_bit) == 0 then
+			if bit.band(val, mm_bit) == 0 then --we're using bitflags instead of string binary cuz bitflags are ✨cool✨
 				ComponentSetValue2(varcomp, "value_int", val + mm_bit)
 				return true
 			else

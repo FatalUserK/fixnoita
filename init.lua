@@ -266,3 +266,36 @@ for xml in nxml.edit_file("data/entities/misc/custom_cards/grenade.xml") do
 		base:clear_children()
 	end
 end
+
+
+
+
+--[[ FIX MIST PROJECTILES ]]
+--The Mist spells do not have the `projectile` tag because `tags` is defined on the entity twice. This causes them to not be properly identified by things like StX or shields.
+
+local mists = {
+	"data/entities/projectiles/deck/mist_alcohol.xml",
+	"data/entities/projectiles/deck/mist_blood.xml",
+	"data/entities/projectiles/deck/mist_radioactive.xml",
+	"data/entities/projectiles/deck/mist_slime.xml",
+}
+
+for _,mist in ipairs(mists) do
+	modifile(mist, [[tags=""]], [[]])
+end
+
+
+
+
+--[[ FIX MISSING PERK ]]
+--[[In Holy Mountain, when entering a portal that's not one of the two directly above the Perk Altar, or if in the starting area above where you enter
+the Holy Mountain and restarting/crashing, the third perk will be missing from the Perk Altar, on account of it being loaded into a chunk that was not
+yet generated, causing it to not be saved.]]
+
+modifile("data/scripts/perks/perk.lua", [[for i=1,count do]],
+	[[local perk_group = EntityCreateNew("perk_group")
+	EntitySetTransform(perk_group, x, y)
+	for i=1,count do]])
+modifile("data/scripts/perks/perk.lua", [[perk_spawn( x + (i-0.5)*item_width, y, perk_id, dont_remove_others )]], [[local perk = perk_spawn( x + (i-0.5)*item_width, y, perk_id, dont_remove_others )
+		if perk then EntityAddChild(perk_group, perk) end]]
+)
