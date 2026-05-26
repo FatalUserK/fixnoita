@@ -1,5 +1,6 @@
 ,en,ru,pt-br,es-es,de,fr-fr,it,pl,zh-cn,jp,ko,,NOTES – use \n for newline,max length,,,,,,,,,,
 fixnoita_damage_projectile_area,damage field,,,,,,,,,,,,Use this for damage field deaths instead of 'cursed rock'.,
+,,,,,,,,,,,,,following are used by the death message system if no attacker can be identified,
 fixnoita_damage_none,none,,,,,,,,,,,,,
 fixnoita_damage_bite,bite,,,,,,,,,,,,,
 fixnoita_damage_material,material,,,,,,,,,,,,,

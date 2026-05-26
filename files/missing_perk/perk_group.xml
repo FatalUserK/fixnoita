@@ -1,0 +1,6 @@
+<Entity name="perk_group">
+    <LuaComponent
+        script_source_file="mods/fixnoita/files/missing_perk/free_children.lua"
+        execute_every_n_frame="2"
+    />
+</Entity>
