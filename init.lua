@@ -248,30 +248,6 @@ modifile("data/entities/animals/boss_alchemist/key_music.lua",
 
 
 
---[[ FIX TELEKINETIC KICK REMOVAL ]]
--- The Nullifying Altar does not properly strip the player of their telekinetic powers despite removing the perk.
-
--- Add `telekinetic_kick` tag to all components on the telekinesis entity.
-for xml in nxml.edit_file("data/entities/misc/perk_telekinesis.xml") do
-	for elem in xml:each_child() do
-		local tags = elem.attr._tags or ""
-		if #tags > 0 then tags = tags .. ",telekinetic_kick" else tags = "telekinetic_kick" end
-		elem.attr._tags = tags
-	end
-end
-
--- Remove all components with the `telekinetic_kick` tag.
-modifile("data/scripts/perks/perk_list.lua", [[-- TODO( Petri ): Remove the perk_telekinesis.xml stuff from the entity]],
-			[[-- TODO( Petri ): Remove the perk_telekinesis.xml stuff from the entity
-			-- TODONE( UserK ): Removed the perk_telekinesis.xml stuff from the entity
-			for _,component in ipairs(EntityGetAllComponents(entity_who_picked) or {}) do
-				if ComponentHasTag(component, "telekinetic_kick") then EntityRemoveComponent(entity_who_picked, component) end
-			end]]
-)
-
-
-
-
 --[[ FIX MISSING PERK ]]
 ---In Holy Mountain, when entering a portal that's not one of the two directly above the Perk Altar, or if in the starting area above where you enter
 --- the Holy Mountain and restarting/crashing, the third perk will be missing from the Perk Altar, on account of it being loaded into a chunk that was
@@ -316,6 +292,18 @@ local fixnoita_endpoint_mountain = EntityGetClosestWithTag( x, y, "ending_sampo_
 if fixnoita_underground ~= 0 then endpoint_underground[1] = fixnoita_underground end
 if fixnoita_endpoint_mountain ~= 0 then endpoint_mountain[1] = fixnoita_endpoint_mountain end
 ]])
+
+
+
+
+--[[ WAND SPIN ANIMATION FIX ]]
+---After an enemy picks up a wand, the wand loses its spinning property, and does not regain it when held by a player.
+
+for xml in nxml.edit_file("data/entities/base_wand_pickup.xml") do
+	xml:add_child(nxml.new_element("LuaComponent", {
+		script_item_picked_up = "mods/fixnoita/files/check_wand_spinny.lua"
+	}))
+end
 
 
 

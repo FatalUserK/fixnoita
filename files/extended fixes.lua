@@ -31,6 +31,30 @@ end
 
 
 
+--[[ FIX TELEKINETIC KICK REMOVAL ]]
+-- The Nullifying Altar does not properly strip the player of their telekinetic powers despite removing the perk.
+
+-- Add `telekinetic_kick` tag to all components on the telekinesis entity.
+for xml in nxml.edit_file("data/entities/misc/perk_telekinesis.xml") do
+	for elem in xml:each_child() do
+		local tags = elem.attr._tags or ""
+		if #tags > 0 then tags = tags .. ",telekinetic_kick" else tags = "telekinetic_kick" end
+		elem.attr._tags = tags
+	end
+end
+
+-- Remove all components with the `telekinetic_kick` tag.
+modifile("data/scripts/perks/perk_list.lua", [[-- TODO( Petri ): Remove the perk_telekinesis.xml stuff from the entity]],
+			[[-- TODO( Petri ): Remove the perk_telekinesis.xml stuff from the entity
+			-- TODONE( UserK ): Removed the perk_telekinesis.xml stuff from the entity
+			for _,component in ipairs(EntityGetAllComponents(entity_who_picked) or {}) do
+				if ComponentHasTag(component, "telekinetic_kick") then EntityRemoveComponent(entity_who_picked, component) end
+			end]]
+)
+
+
+
+
 --[[ FIX MIST PROJECTILES ]]
 -- The Mist spells do not have the `projectile` tag because `tags` is defined on the entity twice. This causes them to not be properly identified by things like StX or shields.
 
