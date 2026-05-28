@@ -9,8 +9,6 @@ function death(damage_type_bit_field, message, attacker, drop_items)
 
 	local entity_id = GetUpdatedEntityID()
 	local stats = EntityGetFirstComponent(entity_id, "GameStatsComponent")
-	print("GameStatsComponent id: " .. tostring(stats))
-	print("GameStatsComponent name: " .. tostring(ComponentGetTypeName(stats or 0)))
 	if not stats then return end
 	if #ComponentGetTypeName(stats) == 0 then return end
 

@@ -1,5 +1,4 @@
 - crit simulator if enemy has crit+ or player is jarated
-- fix mist tags (toggle)
 - true orbit with physics projectiles is buggy? (toggle)
 - homonculous negative HP berserk attacks player?
 - fog of war doesnt work far out (toggle)

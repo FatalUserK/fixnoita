@@ -1,5 +1,6 @@
 <Mod
 	name="fixnoita"
 	description=""
-	tags=""
+	tags="quality of life,tweaks,bugfix"
+	dont_upload_files="workshop_image.aseprite"
 />

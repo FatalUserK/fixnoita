@@ -1,23 +1,22 @@
----`fixnoita` is a very arrogant name, but I like it. What I fix is based off of my arbitrary opinion of what I believe is better off fixed in vanilla.
----S2P crash? Sungems not working? These come across as very obviously stupid glitches that ideally shouldn't be in the game- not that I necessarily hold
---- anything against Nolla for not fixing them. This game is finished, they aren't working on it, better luck for Epilogue 3 if/whenever the eyes are solved
---- or for the 10-year-anniversary.
----There are also some less extreme bugs patched in this that still affect gameplay, such as fixing incorrect CellData -> CellDataChild for materials with
---- _parent materials to inherit from, the main result being Vomit is now viscous, stains the ground and makes you wet. This is intended behavour by Nolla
---- that doesn't apply in-game due to an oversight, and while maybe noticed and intentionally let be by them at some point, they very likely did not notice
---- for a while, and I believe vomit being viscous and staining the ground adds to the material, it makes more sense as a material.
----That being said, while I will be fixing things that I think the game is better off fixed, some fixes do have toggles if I believe there is some utility or
---- reason a player might want to still be able to access the bug, such as mists not having the `projectile` tag, or Quantum Split and Intense Concentrated
---- Light causing some nonsense on restart.
----HOWEVER, if there is a bug fixed by this that you would rather have a toggle, please let me know. Vomit inheriting from Green Slime does not have a toggle,
---- but I do understand it will likely be a controversial change for some. And if this is the case, I am willing to concede and add a toggle, BUT YOU HAVE TO
---- TELL ME FIRST!!!!
+---`fixnoita` is a very simple, and self-conceited name. But I believe I have fixed a list of inarguable flaws with the game, such as Spells to Power crashing if
+--- cast with a lone Sparkbolt, or Kills to Mana perk's description outright lying to you. I have tried to limit the scope of what I fix to what I believe everyone
+--- can agree would be better if fixed. I have an extended bugfixes mod focused on a wider range of things planned (or perhaps out by the time you read this), and
+--- in that I can put the fixes I personally like, and have toggles for them there, but this mod is intended to be a baseline for the intended Noita experience that
+--- I bevieve everyone should play. This is a list of bugs I think everyone can agree on positively benefitting the game. If for some reason you disagree on any of
+--- these, let me know and I will take that into account.
+--- 
+---I would also like to make it clear this mod is not any sort of resentment towards the folks at Nolla. They did a wonderful job with this game, even if their code
+--- was somewhat (very) questionable at times. I appreciate Noita for what it is rather than resent for what it could've been. This doesn't mean I do not wish for
+--- more, wanting more of a good thing is simply human, that's what this mod is. I will always hope Nolla comes back for an Epilogue 3, for bugfixes, more API stuff
+--- more content, but hoping this happens is the limit, and they are not responsible for the game they do not work on. Please do not resent Nolla Games.
+---They, too, are only human.
 ---
----Finally, I have nothing but love for Nolla and this game they have made for us. It is rough around the edges, it is jank, it is buggy, but you and I would
---- not be here if we hated it.
----And if Nolla is reading this- DO add these to the base game if you're comfortable doing so! Maybe not some of the toggleable ones, but feel free to use
---- this as a blueprint for solving some bugs- obviously this mod is having to work from the inside, but as you can see a lot of these fixes just involve very
---- minute changes to the vanilla game's code.
+---And if anyone at Nolla is reading this:
+--- :O, hi! Big fan! I do not mind any of these fixes being implemented into vanilla if y'all are comfortable with that!
+--- This mod has to do a couple awkward things cuz we're working from outside the vanilla code, so we need to inject our logic and changes into the base game, but I
+--- have annotated and explained the bugs and ways I fix them to the best of my abilities below, I hope I can be of assistance!
+
+
 
 ---With that established, I have done my best to annotate the mod to help people reading the code understand the bugs better, and understand how I fix them.
 ---Whether you are here for something specific, or just browsing, I do wish you an enjoyable and educational experience.
@@ -54,8 +53,22 @@ Primitive types in c++ by default aren't initialised, so it just returns whateve
 
 
 
+---LIST OF FIXES:
+--[[ JETPACK HEIGHT FIX ]]
+--[[ S2P CRASH FIX ]]
+--[[ SUNGEM ALTAR FIX ]]
+--[[ TRANSLATION FIXES ]]
+--[[ ITEM STUN VISUALS FIX ]]
+--[[ EMPTY DEATH MESSAGES ]]
+--[[ FIX MULTIPLE CRYSTAL KEYS ]]
+--[[ FIX TELEKINETIC KICK REMOVAL ]]
+--[[ FIX MISSING PERK ]]
+--[[ WRONG ENDING SPOT FIX ]]
 
---[[ JETPACK LENGTH FIX ]]
+
+
+
+--[[ JETPACK HEIGHT FIX ]]
 --<ParticleEmitterComponent::y_pos_offset_min/> is "" for these entities, this results in RAB causing the particle trail's height to be malformed.
 
 local jetpack_targets = {
@@ -72,14 +85,11 @@ local jetpack_targets = {
 	"data/scripts/streaming_integration/entities/effect_player_gas.xml",
 }
 
+-- Originally used NXML for this, but that's overkill. Unnecessary here.
 for _,target in ipairs(jetpack_targets) do
-	for xml in nxml.edit_file(target) do
-		local pecomp = xml:first_of("ParticleEmitterComponent")
-		if pecomp and pecomp.attr.y_pos_offset_min == "" then pecomp.attr.y_pos_offset_min = ".5" end
-		--0.5 looks nicer than 0 imo, we don't know what value Nolla would have written here so it is somewhat up to interpretation.
-	end
+	modifile(target, [[y_pos_offset_min=""]], [[y_pos_offset_min=".5"]])
 end
-
+--0.5 looks nicer than 0 imo, we don't know what value Nolla would have written here so it is somewhat up to interpretation.
 
 
 
@@ -132,7 +142,7 @@ local translation_overrides = {
 	{ -- fr-fr
 		target = [["Chaque fois qu'un ennemi à proximité meurt, vous libérez un liquide rechargeant le mana."]],
 		new = [["Gagne une régéneration de mana accrue pour une courte durée lorsqu'un ennemi meurt."]]
-	}, -- Thank you Spode.
+	}, -- Thank you Spode. (Would be funny if my friend's translation got into the game 👀)
 }
 
 local translations = ModTextFileGetContent("data/translations/common.csv")
@@ -151,17 +161,6 @@ modifile("data/entities/misc/area_damage.xml", [["$damage_rock_curse"]], [["$fix
 modifile("data/entities/misc/custom_cards/propane_tank.xml", [["Propane tank"]], [["$action_propane_tank"]])
 
 --Tbh death messages leave quite a lot to be desired imo, considering making a separate mod after this that entirely overhauls death messages, we'll see if I make time for that.
-
-
-
---[[ VOMIT INHERITANCE FIX ]]
--- Vomit material was intended to inherit properties from Green Slime, this fails however because it is designated as a <CellData/> rather than <CellDataChild/>.
-
-for xml in nxml.edit_file("data/materials.xml") do
-	for elem in xml:each_of("CellData") do
-		if elem.attr._parent then elem.name = "CellDataChild" end
-	end
-end
 
 
 
@@ -198,7 +197,7 @@ function OnWorldPreUpdate()
 			end
 		end
 		if not player then
-			print("COULD NOT FIND POLYMORPHED PLAYER, SHIT SUCKS :/")
+			print("fixnoita: COULD NOT FIND POLYMORPHED PLAYER, SHIT SUCKS :/")
 			check_count = check_count - 1
 			if check_count <= 0 then GameRemoveFlagRun("fixnoita_player_has_polymorphed") end --Give up. :(
 			return
@@ -252,6 +251,7 @@ modifile("data/entities/animals/boss_alchemist/key_music.lua",
 --[[ FIX TELEKINETIC KICK REMOVAL ]]
 -- The Nullifying Altar does not properly strip the player of their telekinetic powers despite removing the perk.
 
+-- Add `telekinetic_kick` tag to all components on the telekinesis entity.
 for xml in nxml.edit_file("data/entities/misc/perk_telekinesis.xml") do
 	for elem in xml:each_child() do
 		local tags = elem.attr._tags or ""
@@ -260,6 +260,7 @@ for xml in nxml.edit_file("data/entities/misc/perk_telekinesis.xml") do
 	end
 end
 
+-- Remove all components with the `telekinetic_kick` tag.
 modifile("data/scripts/perks/perk_list.lua", [[-- TODO( Petri ): Remove the perk_telekinesis.xml stuff from the entity]],
 			[[-- TODO( Petri ): Remove the perk_telekinesis.xml stuff from the entity
 			-- TODONE( UserK ): Removed the perk_telekinesis.xml stuff from the entity
@@ -267,39 +268,6 @@ modifile("data/scripts/perks/perk_list.lua", [[-- TODO( Petri ): Remove the perk
 				if ComponentHasTag(component, "telekinetic_kick") then EntityRemoveComponent(entity_who_picked, component) end
 			end]]
 )
-
-
-
-
---[[ FIX DROPPER BOLT CHARGES ]]
--- Dropper Bolt spell starts with 25/35 charges. This is because of some nonsense where it's custom card entity is shared with Firebolt and Odd Firebolt.
-
--- I actually don't fully understand this bug that much since it seems reliant on a bizarre system I don't fully understand and don't think I need to.
--- Removing the overrides from the first <Base/> component appears to fix this, I don't know why they're there or if they do anything helpful?
--- It seems to work, if something breaks go pester me and I'll go fix it.
-for xml in nxml.edit_file("data/entities/misc/custom_cards/grenade.xml") do
-	local base = xml:first_of("Base")
-	if base then
-		base:clear_children()
-	end
-end
-
-
-
-
---[[ FIX MIST PROJECTILES ]]
--- The Mist spells do not have the `projectile` tag because `tags` is defined on the entity twice. This causes them to not be properly identified by things like StX or shields.
-
-local mists = {
-	"data/entities/projectiles/deck/mist_alcohol.xml",
-	"data/entities/projectiles/deck/mist_blood.xml",
-	"data/entities/projectiles/deck/mist_radioactive.xml",
-	"data/entities/projectiles/deck/mist_slime.xml",
-}
-
-for _,mist in ipairs(mists) do
-	modifile(mist, [[tags=""]], [[]]) --Remove redundant tags definition.
-end
 
 
 
@@ -338,7 +306,7 @@ modifile("data/scripts/perks/perk.lua", [[perk_spawn( x + (i-0.5)*item_width, y,
 ---Ideally this should be using EntityGetInRadiusWithTag(), but this would mess with some of the existing code, so simply using EntityGetClosestWithTag is
 --- the simplest way to resolve this. Thank you to Letaali for illuminating this one for me, and allowing me to use his fix from the QoL mod.
 
---Solution is to do a manual check for the closest one and override the prior returns
+--Solution is to do a manual check for the closest one and override the prior returns.
 modifile("data/entities/animals/boss_centipede/ending/sampo_start_ending_sequence.lua",
 [[local endpoint_mountain = EntityGetWithTag( "ending_sampo_spot_mountain" )]],
 [[local endpoint_mountain = EntityGetWithTag( "ending_sampo_spot_mountain" )
@@ -348,3 +316,20 @@ local fixnoita_endpoint_mountain = EntityGetClosestWithTag( x, y, "ending_sampo_
 if fixnoita_underground ~= 0 then endpoint_underground[1] = fixnoita_underground end
 if fixnoita_endpoint_mountain ~= 0 then endpoint_mountain[1] = fixnoita_endpoint_mountain end
 ]])
+
+
+
+
+---Aaaand that's all!
+--- Funny that the comments took up more space than the bug fixes half the time, huh?
+--- This is because most of these fixes are quite simple! (and also I like to yap.)
+--- Hope you got what you were looking for!
+---
+---FINAL NOTES:
+--- If there's a bug with my mod or incompatibility with any other mods, let me know!
+--- If there are any crucial bugs that I missed that were not patched, let me know!
+--- If you have any questions about any specific bugs, let me know!
+--- If there was anything I explained wrong or that you can provide more info on, let me know!
+--- 
+---I am @UserK on discord, you can ping me on the Noita Discord: https://discord.gg/Noita
+--- or contact me directly (though I may think you're a bot- sorry, I get a lot of bots.)
