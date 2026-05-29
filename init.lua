@@ -299,10 +299,23 @@ if fixnoita_endpoint_mountain ~= 0 then endpoint_mountain[1] = fixnoita_endpoint
 --[[ WAND SPIN ANIMATION FIX ]]
 ---After an enemy picks up a wand, the wand loses its spinning property, and does not regain it when held by a player.
 
-for xml in nxml.edit_file("data/entities/base_wand_pickup.xml") do
-	xml:add_child(nxml.new_element("LuaComponent", {
-		script_item_picked_up = "mods/fixnoita/files/check_wand_spinny.lua"
-	}))
+--Bug appears to be solely due to this collection of wands that are either prefabs, or templates from which prefabs are derived. Fixing these should fix any other cases.
+--Probably.
+local non_spinny_wands = {
+	"data/entities/items/wands/level_01/base_wand_level_1.xml",
+	"data/entities/items/wands/level_01/wand_001.xml",
+	"data/entities/items/wands/level_01/wand_002.xml",
+	"data/entities/items/wands/level_01/wand_003.xml",
+	"data/entities/items/wands/level_01/wand_004.xml",
+	"data/entities/items/wands/level_01/wand_005.xml",
+	"data/entities/items/wands/level_01/wand_006.xml",
+	"data/entities/items/wands/level_01/wand_007.xml",
+	"data/entities/items/wands/level_01/wand_008.xml",
+	"data/entities/items/wands/level_01/wand_009.xml",
+}
+
+for _,wand in ipairs(non_spinny_wands) do
+	modifile(wand, [[play_spinning_animation="0"]], [[play_spinning_animation="1"]])
 end
 
 
