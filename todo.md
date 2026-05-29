@@ -1,5 +1,4 @@
-- fog of war doesnt work far out (toggle)
-- fix wands no longer spinning after held by an enemy (fix after player picks it back up)
+- fog of war doesnt work far out (toggle?)
 ill add the toggle settings when i can be assed to writ
 
 

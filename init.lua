@@ -61,9 +61,9 @@ Primitive types in c++ by default aren't initialised, so it just returns whateve
 --[[ ITEM STUN VISUALS FIX ]]
 --[[ EMPTY DEATH MESSAGES ]]
 --[[ FIX MULTIPLE CRYSTAL KEYS ]]
---[[ FIX TELEKINETIC KICK REMOVAL ]]
 --[[ FIX MISSING PERK ]]
 --[[ WRONG ENDING SPOT FIX ]]
+--[[ SPINNY WANDS FIX ]]
 
 
 
@@ -142,7 +142,7 @@ local translation_overrides = {
 	{ -- fr-fr
 		target = [["Chaque fois qu'un ennemi à proximité meurt, vous libérez un liquide rechargeant le mana."]],
 		new = [["Gagne une régéneration de mana accrue pour une courte durée lorsqu'un ennemi meurt."]]
-	}, -- Thank you Spode. (Would be funny if my friend's translation got into the game 👀)
+	}, -- Thank you Spode. (Would be funny if my friend's translation got into the game, just sayin' 👀)
 }
 
 local translations = ModTextFileGetContent("data/translations/common.csv")
@@ -296,11 +296,11 @@ if fixnoita_endpoint_mountain ~= 0 then endpoint_mountain[1] = fixnoita_endpoint
 
 
 
---[[ WAND SPIN ANIMATION FIX ]]
+--[[ SPINNY WANDS FIX ]]
 ---After an enemy picks up a wand, the wand loses its spinning property, and does not regain it when held by a player.
 
---Bug appears to be solely due to this collection of wands that are either prefabs, or templates from which prefabs are derived. Fixing these should fix any other cases.
---Probably.
+--Bug appears to be solely due to this collection of wands that are either prefabs, or templates from which prefabs are derived.
+-- First floor basically has a lot of prefab wands, a design approach Nolla swiftly abandoned. Fixing these should fix any other cases. Probably.
 local non_spinny_wands = {
 	"data/entities/items/wands/level_01/base_wand_level_1.xml",
 	"data/entities/items/wands/level_01/wand_001.xml",
