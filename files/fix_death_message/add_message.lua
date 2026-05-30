@@ -5,7 +5,7 @@
 
 function death(damage_type_bit_field, message, attacker, drop_items)
 	local msg = message:sub(1,1) == '$' and GameTextGetTranslatedOrNot(message) or message --if the message is a translation key, translate it
-	if #msg > 0 then return end --If message is not empty, assume all is good and return early. 
+	if #msg > 0 then return end --If message is not empty, assume all is good and return early.
 
 	local entity_id = GetUpdatedEntityID()
 	local stats = EntityGetFirstComponent(entity_id, "GameStatsComponent")
