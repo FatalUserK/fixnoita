@@ -139,6 +139,10 @@ local translation_overrides = {
 		target = [["Every time an enemy near you dies, you release mana-recharging liquid."]],
 		new = [["You gain a short-lived boost to your mana regeneration when an enemy dies."]]
 	},
+	{ -- ru
+		target = [["При каждой смерти ближайшего противника вы испускаете жидкость, пополняющую ману."]],
+		new = [["Вы получаете кратковременный бонус к восстановлению маны при смерти врага."]]
+	},
 	{ -- fr-fr
 		target = [["Chaque fois qu'un ennemi à proximité meurt, vous libérez un liquide rechargeant le mana."]],
 		new = [["Gagne une régéneration de mana accrue pour une courte durée lorsqu'un ennemi meurt."]]
