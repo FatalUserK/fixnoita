@@ -1,11 +1,10 @@
---function damage_received(damage, message, attacker, is_fatal, projectile)
---function death(damage_type_bit_field, damage_message, entity_thats_responsible, drop_items)
---^^ this script used to run off of script_damage_received callback, but script_death actually seems more ideal, it lacks `projectile` but has `damage_type_bit_field`.
---`projectile` can be extrapolated from `attacker` anyway, 
+---I previously used `function damage_received(damage, message, attacker, is_fatal, projectile)`, however this does not pass `damage_type_bit_field`, which is a handy fallback.
+---It unfortunately doesn't have Projectile and Attacker as separate, but that should be fine. Attacker here is hopefully the projectile, and from there the attacker can be
+--- extrapolated from mWhoShot on the projectile. If attacker is not the projectile but a direct link to the caster, well fuck ig I'll have to use `damage_received` again.
 
 function death(damage_type_bit_field, message, attacker, drop_items)
-	local msg = message:sub(1,1) == '$' and GameTextGetTranslatedOrNot(message) or message --if the message is a translation key, translate it
-	if #msg > 0 then return end --If message is not empty, assume all is good and return early.
+	local msg_translated = message:sub(1,1) == '$' and GameTextGetTranslatedOrNot(message) --if the message is a translation key, translate it
+	if #msg_translated > 0 or #message > 0 then return end --If message is not empty, assume all is good and return early.
 
 	local entity_id = GetUpdatedEntityID()
 	local stats = EntityGetFirstComponent(entity_id, "GameStatsComponent")
@@ -33,19 +32,19 @@ function death(damage_type_bit_field, message, attacker, drop_items)
 	end
 
 	local funcs = {
-		function(target) --check $action_filename
+		function(target) --check $action_[filename]
 			return match_action(get_file_name(target))
 		end,
-		function(target) --check $action_projectile_varcomp
+		function(target) --check $action_[projectile_varcomp]
 			return match_action(get_projectile_filename_from_varcomp(target))
 		end,
-		function(target) --check $name
+		function(target) --check $[name]
 			return get_translation_or_nil(EntityGetName(target))
 		end,
-		function(target) --check $animal_filename
+		function(target) --check $animal_[filename]
 			return match_animal(get_file_name(target))
 		end,
-		function(target) --check $filename
+		function(target) --check $[filename]
 			return get_translation_or_nil(get_file_name(target))
 		end,
 	}

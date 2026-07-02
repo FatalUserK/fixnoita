@@ -4,7 +4,7 @@
 --- in that I can put the fixes I personally like, and have toggles for them there, but this mod is intended to be a baseline for the intended Noita experience that
 --- I bevieve everyone should play. This is a list of bugs I think everyone can agree on positively benefitting the game. If for some reason you disagree on any of
 --- these, let me know and I will take that into account.
---- 
+---
 ---I would also like to make it clear this mod is not any sort of resentment towards the folks at Nolla. They did a wonderful job with this game, even if their code
 --- was somewhat (very) questionable at times. I appreciate Noita for what it is rather than resent for what it could've been. This doesn't mean I do not wish for
 --- more, wanting more of a good thing is simply human, that's what this mod is. I will always hope Nolla comes back for an Epilogue 3, for bugfixes, more API stuff
@@ -60,8 +60,8 @@ Primitive types in c++ by default aren't initialised, so it just returns whateve
 --[[ TRANSLATION FIXES ]]
 --[[ ITEM STUN VISUALS FIX ]]
 --[[ EMPTY DEATH MESSAGES ]]
---[[ FIX MULTIPLE CRYSTAL KEYS ]]
---[[ FIX MISSING PERK ]]
+--[[ MULTIPLE CRYSTAL KEYS FIX ]]
+--[[ MISSING PERK FIX ]]
 --[[ WRONG ENDING SPOT FIX ]]
 --[[ SPINNY WANDS FIX ]]
 
@@ -128,8 +128,8 @@ modifile("data/scripts/magic/altar_tablet_magic.lua", [[GlobalsGetValue("MISC_DA
 --There are a few issues with translations, the main offenders being missing translations for death-messages and Kills To Mana's description being outdated.
 
 --Note that for death messages, this specifically targets "invalid" or "incorrect" translations, ones with an invalid translation key, or point to the wrong one.
---Not to be confused with the bug that provides no translation key at all (both show up in-game as an empty deaht message, so they are easy to confuse).
---The fix for no death message being generated at all can be found below at [[ EMPTY DEATH MESSAGES ]]
+--Not to be confused with the bug that provides no translation key at all (both show up in-game as an empty death message, so they are easy to confuse).
+--The fix for no death message being generated at all can be found below at [[ EMPTY DEATH MESSAGES ]] (it also tries to catch invalid death messages I miss here).
 
 local translation_overrides = {
 	--KILLS TO MANA DESCRIPTION: "perkdesc_mana_from_kills"
@@ -142,9 +142,10 @@ local translation_overrides = {
 	{ -- fr-fr
 		target = [["Chaque fois qu'un ennemi à proximité meurt, vous libérez un liquide rechargeant le mana."]],
 		new = [["Gagne une régéneration de mana accrue pour une courte durée lorsqu'un ennemi meurt."]]
-	}, -- Thank you Spode. (Would be funny if my friend's translation got into the game, just sayin' 👀)
-}
+	},--Thank you Spode.
+} -- Would be funny if these fan translations got into the game, just sayin' 👀
 
+-- Add new translations, read common.csv for more individual info.
 local translations = ModTextFileGetContent("data/translations/common.csv")
 translations = translations .. "\n" .. ModTextFileGetContent("mods/fixnoita/files/missing_translations.csv") .. "\n"
 translations = translations:gsub("\r", ""):gsub("\n\n+", "\n")
@@ -160,7 +161,15 @@ modifile("data/entities/misc/area_damage.xml", [["$damage_rock_curse"]], [["$fix
 -- Fix the Propane Tank spell using a hardcoded name instead of its translation, "Propane tank" -> $action_propane_tank
 modifile("data/entities/misc/custom_cards/propane_tank.xml", [["Propane tank"]], [["$action_propane_tank"]])
 
---Tbh death messages leave quite a lot to be desired imo, considering making a separate mod after this that entirely overhauls death messages, we'll see if I make time for that.
+-- Fix "bzzt!" death message from sawblades not being translatable, "bzzt!" -> "$fixnoita_damage_sawblade"
+local sawblade_targets = {
+	"data/entities/projectiles/deck/disc_bullet_big.xml",
+	"data/entities/projectiles/deck/disc_bullet_bigger.xml",
+	"data/entities/misc/orbit_discs_disc.xml",
+}
+for _,file in ipairs(sawblade_targets) do
+	modifile(file, [["bzzt!"]], [["$fixnoita_damage_sawblade"]])
+end
 
 
 
@@ -221,7 +230,7 @@ end
 
 
 
---[[ FIX MULTIPLE CRYSTAL KEYS ]]
+--[[ MULTIPLE CRYSTAL KEYS FIX ]]
 -- The Crystal Key tracks whether it has listened to a specific music machine via RunFlags, but the light/dark chests use the key's VariableStorageComponent to track completion.
 -- This causes issues if you have the key listen to a machine and then loes that key, as a new key will think it's already listened to that machine, and not take in the song.
 
@@ -248,7 +257,7 @@ modifile("data/entities/animals/boss_alchemist/key_music.lua",
 
 
 
---[[ FIX MISSING PERK ]]
+--[[ MISSING PERK FIX ]]
 ---In Holy Mountain, when entering a portal that's not one of the two directly above the Perk Altar, or if in the starting area above where you enter
 --- the Holy Mountain and restarting/crashing, the third perk will be missing from the Perk Altar, on account of it being loaded into a chunk that was
 --- not yet generated, causing it to not be saved.
@@ -321,6 +330,28 @@ end
 
 
 
+--[[ UNSAVED PROGRESS FIX ]]
+---When crashing in a run, the game will sometimes successfully remember which progress was discovered this run- but forget to have it permanently discovered.
+---This results in locked portraits having a glowy border indicating they were discovered, but not actually saving them to the progress menu.
+
+--Since the game is correctly remembering what has been discovered this run, and theoretically if someone discovered something "this run", then they must have "discovered it"
+-- to begin with, we can just iterate over everything and force-discover everything that has been discovered this run.
+function OnWorldInitialized()
+	RegisterPerk = function(id, ...)
+		print(id)
+		if GameHasFlagRun("new_perk_picked_" .. id) then
+			AddFlagPersistent("perk_picked_" .. id)
+		end
+	end
+	dofile("data/scripts/perks/perk_reflect.lua")
+end
+
+--This approach might theoretically be undesirable for a mod that intentionally has things discovered "this run" while not permanently marking them as discovered.
+-- If such a case were to occur, I may end up taking out this fix and relegating it to my Extended Fixes mod, we shall see.
+
+
+
+
 ---Aaaand that's all!
 --- Funny that the comments took up more space than the bug fixes half the time, huh?
 --- This is because most of these fixes are quite simple! (and also I like to yap.)
@@ -331,6 +362,6 @@ end
 --- If there are any crucial bugs that I missed that were not patched, let me know!
 --- If you have any questions about any specific bugs, let me know!
 --- If there was anything I explained wrong or that you can provide more info on, let me know!
---- 
+---
 ---I am @UserK on discord, you can ping me on the Noita Discord: https://discord.gg/Noita
 --- or contact me directly (though I may think you're a bot- sorry, I get a lot of bots.)
