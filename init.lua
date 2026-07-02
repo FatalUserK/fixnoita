@@ -334,8 +334,8 @@ end
 ---When crashing in a run, the game will sometimes successfully remember which progress was discovered this run- but forget to have it permanently discovered.
 ---This results in locked portraits having a glowy border indicating they were discovered, but not actually saving them to the progress menu.
 
---Since the game is correctly remembering what has been discovered this run, and theoretically if someone discovered something "this run", then they must have "discovered it"
--- to begin with, we can just iterate over everything and force-discover everything that has been discovered this run.
+--Since the game is correctly remembering what has been discovered this run, and theoretically if someone discovered something "this run", then they must have
+-- "discovered it" to begin with, we can just iterate over everything and force-discover everything that has been discovered this run.
 function OnWorldInitialized()
 	RegisterPerk = function(id, ...)
 		print(id)
