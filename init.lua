@@ -142,7 +142,7 @@ local translation_overrides = {
 	{ -- ru
 		target = [["При каждой смерти ближайшего противника вы испускаете жидкость, пополняющую ману."]],
 		new = [["Вы получаете кратковременный бонус к восстановлению маны при смерти врага."]]
-	},
+	},--Thank you Rakaikkia
 	{ -- fr-fr
 		target = [["Chaque fois qu'un ennemi à proximité meurt, vous libérez un liquide rechargeant le mana."]],
 		new = [["Gagne une régéneration de mana accrue pour une courte durée lorsqu'un ennemi meurt."]]
@@ -216,6 +216,8 @@ function OnWorldPreUpdate()
 			return
 		end
 
+		check_count = 10 --reset counter
+
 		-- Do this here to avoid the function running multiple times after player has been identified.
 		GameRemoveFlagRun("fixnoita_player_has_polymorphed")
 
@@ -276,7 +278,7 @@ modifile("data/scripts/perks/perk.lua", [[for i=1,count do]],
 	for i=1,count do]]
 )
 
---Attach our perks to it.
+--Attach the perks to it.
 modifile("data/scripts/perks/perk.lua", [[perk_spawn( x + (i-0.5)*item_width, y, perk_id, dont_remove_others )]],
 		[[local perk = perk_spawn( x + (i-0.5)*item_width, y, perk_id, dont_remove_others )
 		if perk then EntityAddChild(perk_group, perk) end]]
@@ -341,17 +343,42 @@ end
 --Since the game is correctly remembering what has been discovered this run, and theoretically if someone discovered something "this run", then they must have
 -- "discovered it" to begin with, we can just iterate over everything and force-discover everything that has been discovered this run.
 function OnWorldInitialized()
+	--Perks: These are the simplest cuz of how basic perk reflection is.
 	RegisterPerk = function(id, ...)
-		print(id)
+		id = id:lower()
 		if GameHasFlagRun("new_perk_picked_" .. id) then
 			AddFlagPersistent("perk_picked_" .. id)
 		end
 	end
 	dofile("data/scripts/perks/perk_reflect.lua")
-end
 
+	--Spells: Need to do these slightly more manually since the base system is kinda convoluted, I don't feel like deciphering it, I'll just make my own.
+	dofile_once("data/scripts/gun/gun_actions.lua")
+	for _,action in ipairs(actions or {}) do
+		local id = action.id:lower()
+		if GameHasFlagRun("new_action_" .. id) then
+			AddFlagPersistent("action_" .. id)
+		end
+	end
+
+	--Enemies: We have no ability to read from or write to enemy stats, as they are stored within `Noita/save_stats/`, and we do not have an API function to interact
+	-- with them like we do `Noita/save00/persistent/flags/` via `HasPersistentFlag()`/`AddPersistentFlag()`.
+end
 --This approach might theoretically be undesirable for a mod that intentionally has things discovered "this run" while not permanently marking them as discovered.
 -- If such a case were to occur, I may end up taking out this fix and relegating it to my Extended Fixes mod, we shall see.
+
+
+
+
+--[[ ENDING AMULET FIX ]]
+---Due to a feature(? bug??) wherein abandoning an ongoing run for a new one does not count as a death SPECIFICALLY in modded, an oversight (presumably) causes the
+--- code that handles checking for the amulet gem run flag and granting the persistent flag to not run.
+
+-- The solution here is to just manually grant the amulet gem when the ending is achieved, rather than forcing the player to find a way to perish.
+modifile("data/entities/animals/boss_centipede/ending/sampo_start_ending_sequence.lua",
+	[[-- AddFlagPersistent( "secret_amulet_gem" )]], [[AddFlagPersistent( "secret_amulet_gem" )]]
+)
+
 
 
 
@@ -366,6 +393,7 @@ end
 --- If there are any crucial bugs that I missed that were not patched, let me know!
 --- If you have any questions about any specific bugs, let me know!
 --- If there was anything I explained wrong or that you can provide more info on, let me know!
+--- If anything, *please*, let me know!
 ---
 ---I am @UserK on discord, you can ping me on the Noita Discord: https://discord.gg/Noita
 --- or contact me directly (though I may think you're a bot- sorry, I get a lot of bots.)
