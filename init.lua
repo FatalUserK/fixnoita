@@ -64,6 +64,8 @@ Primitive types in c++ by default aren't initialised, so it just returns whateve
 --[[ MISSING PERK FIX ]]
 --[[ WRONG ENDING SPOT FIX ]]
 --[[ SPINNY WANDS FIX ]]
+--[[ UNSAVED PROGRESS FIX ]]
+--[[ ENDING AMULET FIX ]]
 
 
 
