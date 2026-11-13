@@ -3,8 +3,9 @@
 --- extrapolated from mWhoShot on the projectile. If attacker is not the projectile but a direct link to the caster, well fuck ig I'll have to use `damage_received` again.
 
 function death(damage_type_bit_field, message, attacker, drop_items)
-	local msg_translated = message:sub(1,1) == '$' and GameTextGetTranslatedOrNot(message) --if the message is a translation key, translate it
-	if #msg_translated > 0 or #message > 0 then return end --If message is not empty, assume all is good and return early.
+	print("msg: "..message)
+	if #GameTextGetTranslatedOrNot(message) > 0 then print(("fixnoita: death message looks good, '%s'"):format(GameTextGetTranslatedOrNot(message))) return end --If message is not empty, assume all is good and return early.
+	print("fixnoita: death message looks empty, fixing...")
 
 	local entity_id = GetUpdatedEntityID()
 	local stats = EntityGetFirstComponent(entity_id, "GameStatsComponent")

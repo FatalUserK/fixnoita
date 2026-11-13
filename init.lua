@@ -28,9 +28,9 @@ local nxml = dofile_once("mods/fixnoita/nxml/nxml.lua") ---@type nxml
 --De-patterning function for dealing with string.gsub() and other pattern-utilising Lua functions.
 local function escape(str) return str:gsub("[%(%)%.%%%+%-%*%?%[%^%$%]]", "%%%1") end
 
---Convenient function to simplify modifying files, gsub \r\n to \n to edit multiple lines at a time.
+--Convenient function to simplify modifying files, gsub "\r" to "" to edit multiple lines at a time.
 local function modifile(file, target, sub)
-	ModTextFileSetContent(file, ModTextFileGetContent(file):gsub("\r\n", "\n"):gsub(escape(target), sub))
+	ModTextFileSetContent(file, ModTextFileGetContent(file):gsub("\r", ""):gsub(escape(target), sub))
 end
 
 
@@ -181,7 +181,7 @@ end
 
 
 --[[ ITEM STUN VISUALS FIX ]]
--- The visuals caused by freeze-stun and electricity-stun effects can become permanent on a held item if you switch to a different item before the effect is up.
+-- The visuals from freeze-stun and electricity-stun effects can become permanent on a held item if you switch to a different item before the effect is up.
 
 --[[ EMPTY DEATH MESSAGES ]]
 -- Sometimes the game does not provide a death message string, script_death here.
@@ -192,32 +192,44 @@ for xml in nxml.edit_file("data/entities/player.xml") do
 		execute_every_n_frame = "6000", --fix stun visuals every 100 seconds.
 		script_source_file = "mods/fixnoita/files/fix_permanent_stun_visual_items.lua", --Fix stun visuals script.
 		script_death = "mods/fixnoita/files/fix_death_message/add_message.lua", --fix empty death message script.
-		script_polymorphing_to = "mods/fixnoita/files/fix_death_message/add_message.lua", --Detect when the player polymorphs to apply the fix to their new form.
+		script_polymorphing_to = "mods/fixnoita/files/fix_death_message/add_message.lua", --Detect when the player polymorphs to apply the death message fix to their new form.
 	}))
 end
 
+
+
+
 -- Script that activates when the player has been polymorphed to ensure the entity they polymorph into also has the death message fix applied.
-local check_count = 10 --Number of frames in a row the mod will attempt to relocate the player
+local check_count = 10 --Number of frames in a row the mod will attempt to relocate the player before giving up.
+local last_max_id = 0
 function OnWorldPreUpdate()
 	if GameHasFlagRun("fixnoita_player_has_polymorphed") then
 		local max_eid = EntitiesGetMaxID()
 		local player
-		for i = 0, max_eid - 1 do --Iterating over all entities to find the one with the `polymorphed_player` tag.
+		for i = last_max_id, max_eid do --Iterating over all entities to find the one with the `polymorphed_player` tag.
 			---@type entity_id
 			---@diagnostic disable-next-line: assign-type-mismatch
 			local id = max_eid - i --Work backwards, cuz polymorphed player is very likely to be close to the end of the list.
-			if EntityGetIsAlive(id) and (EntityHasTag(id, "polymorphed_player") or EntityHasTag(id, "player_unit")) then --"player_unit" for if the player is NOT polymorphed.
-				player = id --We found our girl!
-				break
+			if EntityGetIsAlive(id) then
+				local stats_comps = EntityGetComponent(id, "GameStatsComponent") or {}
+				for _,comp in ipairs(stats_comps) do --Check <GameStatsComponent::is_player/> because Cessation does not give the `polymorphed_player` tag
+					if ComponentGetTypeName(comp) ~= "GameStatsComponent" then break --if GameStatsComponent is broken, then break
+					elseif ComponentGetValue2(comp, "is_player") then
+						player = id --We found our girl!
+						print("fixnoita: found polymorphed player")
+						break
+					end
+				end
 			end
 		end
 		if not player then
-			print("fixnoita: COULD NOT FIND POLYMORPHED PLAYER, SHIT SUCKS :/")
 			check_count = check_count - 1
+			print("fixnoita: failed to find player for "..10-check_count.."frames")
 			if check_count <= 0 then GameRemoveFlagRun("fixnoita_player_has_polymorphed") end --Give up. :(
 			return
 		end
 
+		last_max_id = max_eid
 		check_count = 10 --reset counter
 
 		-- Do this here to avoid the function running multiple times after player has been identified.
@@ -354,8 +366,9 @@ function OnWorldInitialized()
 	end
 	dofile("data/scripts/perks/perk_reflect.lua")
 
-	--Spells: Need to do these slightly more manually since the base system is kinda convoluted, I don't feel like deciphering it, I'll just make my own.
+	--Spells: Need to do these slightly more manually since the base system is kinda convoluted and I don't feel like hooking into all that mess.
 	dofile_once("data/scripts/gun/gun.lua")
+	---@diagnostic disable-next-line: undefined-global
 	for _,action in ipairs(actions or {}) do
 		local id = action.id:lower()
 		if GameHasFlagRun("new_action_" .. id) then
